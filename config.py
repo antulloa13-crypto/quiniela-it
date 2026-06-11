@@ -13,6 +13,7 @@ class Config:
     WTF_CSRF_ENABLED = True
     WTF_CSRF_TIME_LIMIT = 3600  # 1 hora
 
+   TIMEZONE = "America/Tegucigalpa"
 
 class DevelopmentConfig(Config):
     DEBUG = True
