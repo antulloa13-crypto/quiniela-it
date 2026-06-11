@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}Partidos — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div class="d-flex align-items-center gap-3">
+    <i class="bi bi-calendar-event fs-3"></i>
+    <div>
+      <h4 class="mb-0 fw-bold">Partidos</h4>
+      <small class="opacity-75">{{ partidos | length }} en total</small>
+    </div>
+  </div>
+  <a href="{{ url_for('admin.nuevo_partido') }}" class="btn btn-light fw-semibold">
+    <i class="bi bi-plus-circle me-2"></i>Nuevo Partido
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if partidos %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="ranking-table">
+            <tr>
+              <th class="ps-4">#</th>
+              <th>Partido</th>
+              <th class="text-center d-none d-md-table-cell">Fecha y Hora</th>
+              <th class="text-center">Estado</th>
+              <th class="text-center d-none d-lg-table-cell">Resultado</th>
+              <th class="text-center d-none d-lg-table-cell">Pronósticos</th>
+              <th class="text-end pe-4">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for partido in partidos %}
+              <tr>
+                <td class="ps-4 text-muted small">{{ loop.index }}</td>
+                <td>
+                  <div class="fw-semibold">
+                    {{ partido.equipo_a }}
+                    <span class="text-muted mx-1 small">vs</span>
+                    {{ partido.equipo_b }}
+                  </div>
+                  <div class="text-muted d-md-none small">
+                    <i class="bi bi-calendar3 me-1"></i>{{ partido.fecha_hora | fmt_datetime }}
+                  </div>
+                </td>
+                <td class="text-center d-none d-md-table-cell">
+                  <div class="fw-semibold small">{{ partido.fecha_hora | fmt_date }}</div>
+                  <div class="text-muted small">
+                    <i class="bi bi-clock me-1"></i>{{ partido.fecha_hora | fmt_time }}
+                  </div>
+                </td>
+                <td class="text-center">
+                  {% if partido.estado == 'pendiente' %}
+                    <span class="badge badge-pendiente px-3">Pendiente</span>
+                  {% elif partido.estado == 'en_juego' %}
+                    <span class="badge badge-en_juego px-3">En Juego</span>
+                  {% else %}
+                    <span class="badge badge-finalizado px-3">Finalizado</span>
+                  {% endif %}
+                </td>
+                <td class="text-center d-none d-lg-table-cell">
+                  {% if partido.resultado %}
+                    {% if partido.resultado.resultado == 'equipo_a' %}
+                      <span class="badge bg-primary">{{ partido.equipo_a }}</span>
+                    {% elif partido.resultado.resultado == 'empate' %}
+                      <span class="badge bg-secondary">Empate</span>
+                    {% else %}
+                      <span class="badge bg-info text-dark">{{ partido.equipo_b }}</span>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-muted small">Sin resultado</span>
+                  {% endif %}
+                </td>
+                <td class="text-center d-none d-lg-table-cell">
+                  <span class="badge bg-light text-dark border">
+                    <i class="bi bi-people me-1"></i>{{ partido.pronosticos.count() }}
+                  </span>
+                </td>
+                <td class="text-end pe-4">
+                  <div class="d-flex justify-content-end gap-1">
+                    <a href="{{ url_for('admin.editar_partido', partido_id=partido.id) }}"
+                       class="btn btn-sm btn-outline-primary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST"
+                          action="{{ url_for('admin.eliminar_partido', partido_id=partido.id) }}"
+                          data-confirm="¿Eliminar el partido {{ partido.equipo_a }} vs {{ partido.equipo_b }}? Se eliminarán también todos los pronósticos y resultado asociado.">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-calendar-x display-3 opacity-25 d-block mb-3"></i>
+        <h5>No hay partidos registrados</h5>
+        <p class="mb-3">Crea el primer partido para comenzar la quiniela.</p>
+        <a href="{{ url_for('admin.nuevo_partido') }}" class="btn btn-primary">
+          <i class="bi bi-plus-circle me-2"></i>Crear Partido
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

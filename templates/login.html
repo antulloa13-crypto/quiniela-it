@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Iniciar Sesión — Quiniela Deportiva{% endblock %}
+
+{% block extra_css %}
+<style>
+  body { background: linear-gradient(135deg, #0f2540 0%, #1a3a5c 50%, #2d6a9f 100%); }
+  main { padding: 0 !important; }
+  footer { display: none !important; }
+  .login-card { min-width: 360px; }
+  .nav-tabs .nav-link { color: #6c757d; font-weight: 600; }
+  .nav-tabs .nav-link.active { color: #1a3a5c; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-wrapper">
+  <div class="login-card card">
+
+    <!-- Cabecera -->
+    <div class="login-header">
+      <i class="bi bi-trophy-fill" style="font-size:3rem; color:#ffd700;"></i>
+      <h2 class="fw-bold mt-3 mb-1">Quiniela Deportiva</h2>
+      <p class="mb-0 opacity-75 small">Ingresa tus credenciales para continuar</p>
+    </div>
+
+    <!-- Flash messages inline -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="px-4 pt-3">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show py-2" role="alert">
+              <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}x-circle{% else %}info-circle{% endif %} me-2"></i>
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Pestañas -->
+    <div class="px-4 pt-3">
+      <ul class="nav nav-tabs" id="authTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if active_tab != 'register' %}active{% endif %}"
+                  id="login-tab" data-bs-toggle="tab" data-bs-target="#login-pane"
+                  type="button" role="tab">
+            <i class="bi bi-box-arrow-in-right me-1"></i>Iniciar Sesión
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link {% if active_tab == 'register' %}active{% endif %}"
+                  id="register-tab" data-bs-toggle="tab" data-bs-target="#register-pane"
+                  type="button" role="tab">
+            <i class="bi bi-person-plus me-1"></i>Registrarse
+          </button>
+        </li>
+      </ul>
+    </div>
+
+    <div class="tab-content card-body p-4 pt-3">
+
+      <!-- Formulario Login -->
+      <div class="tab-pane fade {% if active_tab != 'register' %}show active{% endif %}"
+           id="login-pane" role="tabpanel">
+        <form method="POST" action="{{ url_for('auth.login') }}" data-validate novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-3">
+            <label for="username" class="form-label fw-semibold">
+              <i class="bi bi-person me-1 text-secondary"></i>Usuario
+            </label>
+            <input type="text"
+                   class="form-control form-control-lg"
+                   id="username"
+                   name="username"
+                   placeholder="Ej: Juan_Perez"
+                   autocomplete="username"
+                   required autofocus>
+            <div class="invalid-feedback">Ingresa tu nombre de usuario.</div>
+          </div>
+
+          <div class="mb-4">
+            <label for="password" class="form-label fw-semibold">
+              <i class="bi bi-lock me-1 text-secondary"></i>Contraseña
+            </label>
+            <div class="input-group">
+              <input type="password"
+                     class="form-control form-control-lg"
+                     id="password"
+                     name="password"
+                     placeholder="••••••••"
+                     autocomplete="current-password"
+                     required>
+              <button type="button"
+                      class="btn btn-outline-secondary"
+                      data-toggle-password="password"
+                      title="Mostrar / ocultar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+              <div class="invalid-feedback">Ingresa tu contraseña.</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold"
+                  style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f);border:none;">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar Sesión
+          </button>
+        </form>
+      </div>
+
+      <!-- Formulario Registro -->
+      <div class="tab-pane fade {% if active_tab == 'register' %}show active{% endif %}"
+           id="register-pane" role="tabpanel">
+        <form method="POST" action="{{ url_for('auth.register') }}" data-validate novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="row g-2 mb-3">
+            <div class="col">
+              <label for="reg_nombre" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>Nombre
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="reg_nombre"
+                     name="nombre"
+                     placeholder="Ej: Juan"
+                     required>
+              <div class="invalid-feedback">Ingresa tu nombre.</div>
+            </div>
+            <div class="col">
+              <label for="reg_apellido" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>Apellido
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="reg_apellido"
+                     name="apellido"
+                     placeholder="Ej: Pérez"
+                     required>
+              <div class="invalid-feedback">Ingresa tu apellido.</div>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label for="reg_username" class="form-label fw-semibold">
+              <i class="bi bi-at me-1 text-secondary"></i>Usuario
+            </label>
+            <input type="text"
+                   class="form-control"
+                   id="reg_username"
+                   name="username"
+                   placeholder="Ej: Juan_Perez"
+                   autocomplete="username"
+                   required>
+            <div class="form-text">Solo letras, números y guión bajo. Sin espacios.</div>
+            <div class="invalid-feedback">Ingresa un nombre de usuario.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="reg_password" class="form-label fw-semibold">
+              <i class="bi bi-lock me-1 text-secondary"></i>Contraseña
+            </label>
+            <div class="input-group">
+              <input type="password"
+                     class="form-control"
+                     id="reg_password"
+                     name="password"
+                     placeholder="Mínimo 6 caracteres"
+                     autocomplete="new-password"
+                     minlength="6"
+                     required>
+              <button type="button"
+                      class="btn btn-outline-secondary"
+                      data-toggle-password="reg_password"
+                      title="Mostrar / ocultar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+              <div class="invalid-feedback">La contraseña debe tener al menos 6 caracteres.</div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <label for="reg_password2" class="form-label fw-semibold">
+              <i class="bi bi-lock-fill me-1 text-secondary"></i>Confirmar contraseña
+            </label>
+            <div class="input-group">
+              <input type="password"
+                     class="form-control"
+                     id="reg_password2"
+                     name="password2"
+                     placeholder="Repetí la contraseña"
+                     autocomplete="new-password"
+                     required>
+              <button type="button"
+                      class="btn btn-outline-secondary"
+                      data-toggle-password="reg_password2"
+                      title="Mostrar / ocultar contraseña">
+                <i class="bi bi-eye"></i>
+              </button>
+              <div class="invalid-feedback">Confirmá tu contraseña.</div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-success btn-lg w-100 fw-bold">
+            <i class="bi bi-person-check me-2"></i>Crear cuenta
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <div class="card-footer bg-light text-center text-muted small py-3">
+      <i class="bi bi-shield-lock me-1"></i>
+      Acceso restringido a usuarios registrados
+    </div>
+  </div>
+</div>
+{% endblock %}

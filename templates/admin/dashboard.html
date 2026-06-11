@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-3">
+  <i class="bi bi-speedometer2 fs-3"></i>
+  <div>
+    <h4 class="mb-0 fw-bold">Dashboard</h4>
+    <small class="opacity-75">Resumen general de la quiniela</small>
+  </div>
+</div>
+
+<!-- ═══ Tarjetas de estadísticas ═══════════════════════════ -->
+<div class="row g-3 mb-4">
+  <!-- Participantes -->
+  <div class="col-6 col-md-4 col-lg-2-4">
+    <div class="card stat-card border-primary h-100">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small fw-semibold text-uppercase">Participantes</div>
+          <div class="display-6 fw-bold text-primary mt-1">{{ total_participantes }}</div>
+        </div>
+        <i class="bi bi-people stat-icon text-primary"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Total partidos -->
+  <div class="col-6 col-md-4 col-lg-2-4">
+    <div class="card stat-card border-info h-100">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small fw-semibold text-uppercase">Total Partidos</div>
+          <div class="display-6 fw-bold text-info mt-1">{{ total_partidos }}</div>
+        </div>
+        <i class="bi bi-calendar3 stat-icon text-info"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pendientes -->
+  <div class="col-6 col-md-4 col-lg-2-4">
+    <div class="card stat-card border-warning h-100">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small fw-semibold text-uppercase">Pendientes</div>
+          <div class="display-6 fw-bold text-warning mt-1">{{ partidos_pendientes }}</div>
+        </div>
+        <i class="bi bi-hourglass-split stat-icon text-warning"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- En juego -->
+  <div class="col-6 col-md-4 col-lg-2-4">
+    <div class="card stat-card border-success h-100">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small fw-semibold text-uppercase">En Juego</div>
+          <div class="display-6 fw-bold text-success mt-1">{{ partidos_en_juego }}</div>
+        </div>
+        <i class="bi bi-play-circle stat-icon text-success"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Finalizados -->
+  <div class="col-6 col-md-4 col-lg-2-4">
+    <div class="card stat-card border-danger h-100">
+      <div class="card-body d-flex align-items-center justify-content-between">
+        <div>
+          <div class="text-muted small fw-semibold text-uppercase">Finalizados</div>
+          <div class="display-6 fw-bold text-danger mt-1">{{ partidos_finalizados }}</div>
+        </div>
+        <i class="bi bi-flag-fill stat-icon text-danger"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- ═══ Ranking top 10 ══════════════════════════════════════ -->
+  <div class="col-12 col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between py-3"
+           style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f);color:#fff;border-radius:12px 12px 0 0;">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-bar-chart-line fs-5"></i>
+          <span class="fw-bold">Ranking General</span>
+        </div>
+        <a href="{{ url_for('admin.ranking') }}" class="btn btn-sm btn-light opacity-90">
+          Ver completo <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+      </div>
+      <div class="card-body p-0">
+        {% if ranking %}
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 ranking-table">
+              <thead>
+                <tr>
+                  <th class="ps-3" style="width:50px">#</th>
+                  <th>Participante</th>
+                  <th class="text-center">Pts</th>
+                  <th class="text-center d-none d-md-table-cell">Racha</th>
+                  <th class="text-center d-none d-md-table-cell">Mejor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in ranking %}
+                  <tr class="rank-{{ loop.index }}">
+                    <td class="ps-3 fw-bold">
+                      {% if loop.index == 1 %}<span class="rank-medal">🥇</span>
+                      {% elif loop.index == 2 %}<span class="rank-medal">🥈</span>
+                      {% elif loop.index == 3 %}<span class="rank-medal">🥉</span>
+                      {% else %}{{ loop.index }}{% endif %}
+                    </td>
+                    <td>
+                      <div class="fw-semibold">{{ item.usuario.username }}</div>
+                      <div class="text-muted small d-none d-sm-block">{{ item.usuario.nombre_completo }}</div>
+                    </td>
+                    <td class="text-center">
+                      <span class="badge bg-primary fs-6 px-3">{{ item.puntos }}</span>
+                    </td>
+                    <td class="text-center d-none d-md-table-cell">
+                      {% if item.racha_actual > 0 %}
+                        <span class="badge bg-success">
+                          <i class="bi bi-fire me-1"></i>{{ item.racha_actual }}
+                        </span>
+                      {% else %}
+                        <span class="text-muted">—</span>
+                      {% endif %}
+                    </td>
+                    <td class="text-center d-none d-md-table-cell">
+                      <span class="text-muted fw-semibold">{{ item.mejor_racha }}</span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-bar-chart display-4 opacity-25 d-block mb-2"></i>
+            <p>Sin datos de ranking todavía.<br>
+               <a href="{{ url_for('admin.resultados') }}">Registra resultados</a> para ver el ranking.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ Últimos resultados ════════════════════════════════ -->
+  <div class="col-12 col-lg-5">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center gap-2 py-3"
+           style="background:linear-gradient(135deg,#145a32,#1e8449);color:#fff;border-radius:12px 12px 0 0;">
+        <i class="bi bi-clipboard-check fs-5"></i>
+        <span class="fw-bold">Últimos Resultados</span>
+      </div>
+      <div class="card-body p-0">
+        {% if ultimos_resultados %}
+          <ul class="list-group list-group-flush">
+            {% for resultado in ultimos_resultados %}
+              {% set partido = resultado.partido %}
+              <li class="list-group-item px-3 py-3">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div class="fw-semibold small">
+                      {{ partido.equipo_a }} vs {{ partido.equipo_b }}
+                    </div>
+                    <div class="text-muted" style="font-size:.78rem">
+                      <i class="bi bi-calendar3 me-1"></i>{{ partido.fecha_hora | fmt_datetime }}
+                    </div>
+                  </div>
+                  <div class="text-end ms-2">
+                    {% if resultado.resultado == 'equipo_a' %}
+                      <span class="badge bg-primary">{{ partido.equipo_a }}</span>
+                    {% elif resultado.resultado == 'empate' %}
+                      <span class="badge bg-secondary">Empate</span>
+                    {% else %}
+                      <span class="badge bg-info text-dark">{{ partido.equipo_b }}</span>
+                    {% endif %}
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="text-center text-muted py-5">
+            <i class="bi bi-clipboard display-4 opacity-25 d-block mb-2"></i>
+            <p>No hay resultados registrados aún.</p>
+            <a href="{{ url_for('admin.resultados') }}" class="btn btn-sm btn-outline-success">
+              Registrar resultados
+            </a>
+          </div>
+        {% endif %}
+      </div>
+      {% if ultimos_resultados %}
+        <div class="card-footer text-center bg-light">
+          <a href="{{ url_for('admin.resultados') }}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-pencil-square me-1"></i>Gestionar Resultados
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Acciones rápidas -->
+<div class="row g-3 mt-2">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <h6 class="section-title mb-3"><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h6>
+        <div class="d-flex flex-wrap gap-2">
+          <a href="{{ url_for('admin.nuevo_partido') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-2"></i>Nuevo Partido
+          </a>
+          <a href="{{ url_for('admin.nuevo_participante') }}" class="btn btn-outline-primary">
+            <i class="bi bi-person-plus me-2"></i>Nuevo Participante
+          </a>
+          <a href="{{ url_for('admin.resultados') }}" class="btn btn-outline-success">
+            <i class="bi bi-clipboard-check me-2"></i>Registrar Resultados
+          </a>
+          <a href="{{ url_for('admin.ranking') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-bar-chart-line me-2"></i>Ver Ranking Completo
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Hack para que enumerate funcione en Jinja2
+</script>
+{% endblock %}

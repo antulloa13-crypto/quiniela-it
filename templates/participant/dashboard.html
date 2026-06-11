@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% block title %}Mis Pronósticos — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+
+<!-- ═══ Encabezado con stats personales ══════════════════════ -->
+<div class="page-header d-flex align-items-center justify-content-between flex-wrap gap-3">
+  <div class="d-flex align-items-center gap-3">
+    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+         style="width:52px;height:52px;font-size:1.3rem;background:rgba(255,255,255,.2);flex-shrink:0;">
+      {{ current_user.username[0].upper() }}
+    </div>
+    <div>
+      <h4 class="mb-0 fw-bold">Hola, {{ current_user.nombre }}!</h4>
+      <small class="opacity-75">
+        <i class="bi bi-clock me-1"></i>{{ ahora | fmt_datetime }}
+      </small>
+    </div>
+  </div>
+
+  {% if puntuacion %}
+    <div class="d-flex gap-3">
+      <div class="text-center text-white">
+        <div class="fw-bold" style="font-size:1.5rem;">{{ puntuacion.puntos }}</div>
+        <div class="opacity-75 small">Puntos</div>
+      </div>
+      <div class="text-center text-white">
+        <div class="fw-bold" style="font-size:1.5rem;">{{ puntuacion.racha_actual }}</div>
+        <div class="opacity-75 small">Racha</div>
+      </div>
+      <div class="text-center text-white">
+        <div class="fw-bold" style="font-size:1.5rem;">{{ puntuacion.mejor_racha }}</div>
+        <div class="opacity-75 small">Mejor Racha</div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- ═══ Sección 1: Partidos próximos ═════════════════════════ -->
+{% if proximos %}
+  <div class="mb-4">
+    <h5 class="section-title mb-3">
+      <i class="bi bi-calendar-event me-2"></i>Disponibles para pronosticar
+      <span class="badge bg-primary ms-2">{{ proximos | length }}</span>
+    </h5>
+
+    <div class="row g-3">
+      {% for partido in proximos %}
+        {% set mi_pronostico = mis_pronosticos.get(partido.id) %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="card partido-card h-100">
+            <div class="card-header">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <small class="opacity-75">
+                  <i class="bi bi-calendar3 me-1"></i>{{ partido.fecha_hora | fmt_date }}
+                </small>
+                <span class="badge countdown-badge bg-info text-dark"
+                      data-countdown="{{ partido.fecha_hora | to_timestamp_ms }}">
+                  …
+                </span>
+              </div>
+              <div class="d-flex align-items-center justify-content-between mt-1">
+                <span class="team-name">{{ partido.equipo_a }}</span>
+                <span class="vs-badge">VS</span>
+                <span class="team-name text-end">{{ partido.equipo_b }}</span>
+              </div>
+              <div class="text-center mt-1">
+                <small class="opacity-75">
+                  <i class="bi bi-clock me-1"></i>{{ partido.fecha_hora | fmt_time }} hs
+                </small>
+              </div>
+            </div>
+
+            <div class="card-body">
+              <!-- Botones de pronóstico -->
+              <p class="small text-muted fw-semibold mb-2">
+                <i class="bi bi-pencil-fill me-1"></i>Tu pronóstico:
+              </p>
+
+              <div class="pronostico-btn-group">
+                <!-- Gana A -->
+                <button type="button"
+                        class="pronostico-btn {% if mi_pronostico and mi_pronostico.pronostico == 'equipo_a' %}selected{% endif %}"
+                        onclick="guardarPronostico({{ partido.id }}, 'equipo_a', this)"
+                        title="Gana {{ partido.equipo_a }}">
+                  <div class="small text-muted mb-1" style="font-size:.7rem">GANA</div>
+                  {{ partido.equipo_a }}
+                </button>
+
+                <!-- Empate -->
+                <button type="button"
+                        class="pronostico-btn {% if mi_pronostico and mi_pronostico.pronostico == 'empate' %}selected-empate{% endif %}"
+                        onclick="guardarPronostico({{ partido.id }}, 'empate', this)"
+                        title="Empate">
+                  <div class="small text-muted mb-1" style="font-size:.7rem">X</div>
+                  Empate
+                </button>
+
+                <!-- Gana B -->
+                <button type="button"
+                        class="pronostico-btn {% if mi_pronostico and mi_pronostico.pronostico == 'equipo_b' %}selected{% endif %}"
+                        onclick="guardarPronostico({{ partido.id }}, 'equipo_b', this)"
+                        title="Gana {{ partido.equipo_b }}">
+                  <div class="small text-muted mb-1" style="font-size:.7rem">GANA</div>
+                  {{ partido.equipo_b }}
+                </button>
+              </div>
+
+              <!-- Indicador de pronóstico guardado -->
+              <div class="pronostico-saved mt-2 text-center {% if not mi_pronostico %}d-none{% endif %}">
+                <small class="text-success">
+                  <i class="bi bi-check-circle me-1"></i>Guardado:
+                  <span class="pronostico-saved-label fw-semibold">
+                    {% if mi_pronostico %}
+                      {% if mi_pronostico.pronostico == 'equipo_a' %}{{ partido.equipo_a }}
+                      {% elif mi_pronostico.pronostico == 'empate' %}Empate
+                      {% else %}{{ partido.equipo_b }}{% endif %}
+                    {% endif %}
+                  </span>
+                </small>
+              </div>
+            </div>
+
+            <div class="card-footer bg-light d-flex justify-content-between align-items-center small text-muted">
+              <span>
+                <i class="bi bi-people me-1"></i>{{ partido.pronosticos.count() }} pronósticos
+              </span>
+              <span class="fw-semibold" id="cierre-{{ partido.id }}">
+                Cierre: {{ partido.fecha_hora | fmt_time }}
+              </span>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- ═══ Sección 2: Partidos en curso ═════════════════════════ -->
+{% if en_curso %}
+  <div class="mb-4">
+    <h5 class="section-title mb-3">
+      <i class="bi bi-play-circle me-2 text-warning"></i>En curso — pronósticos bloqueados
+    </h5>
+
+    <div class="row g-3">
+      {% for partido in en_curso %}
+        {% set mi_pronostico = mis_pronosticos.get(partido.id) %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="card partido-card locked h-100">
+            <div class="card-header">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="opacity-75">
+                  <i class="bi bi-calendar3 me-1"></i>{{ partido.fecha_hora | fmt_datetime }}
+                </small>
+                <span class="badge bg-warning text-dark">En Juego</span>
+              </div>
+              <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="team-name">{{ partido.equipo_a }}</span>
+                <span class="vs-badge">VS</span>
+                <span class="team-name text-end">{{ partido.equipo_b }}</span>
+              </div>
+            </div>
+            <div class="card-body">
+              {% if mi_pronostico %}
+                <div class="text-center">
+                  <p class="small text-muted mb-1">Tu pronóstico (bloqueado):</p>
+                  {% if mi_pronostico.pronostico == 'equipo_a' %}
+                    <span class="badge bg-primary px-4 py-2 fs-6">{{ partido.equipo_a }}</span>
+                  {% elif mi_pronostico.pronostico == 'empate' %}
+                    <span class="badge bg-secondary px-4 py-2 fs-6">Empate</span>
+                  {% else %}
+                    <span class="badge bg-info text-dark px-4 py-2 fs-6">{{ partido.equipo_b }}</span>
+                  {% endif %}
+                </div>
+              {% else %}
+                <div class="text-center text-muted">
+                  <i class="bi bi-slash-circle display-6 opacity-25 d-block mb-2"></i>
+                  <small>No ingresaste pronóstico</small>
+                </div>
+              {% endif %}
+            </div>
+            <div class="card-footer bg-light text-center small text-muted">
+              <i class="bi bi-lock-fill me-1"></i>Pronósticos bloqueados — esperando resultado
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- ═══ Sección 3: Partidos finalizados ══════════════════════ -->
+{% if finalizados %}
+  <div class="mb-4">
+    <h5 class="section-title mb-3">
+      <i class="bi bi-flag-fill me-2 text-success"></i>Resultados recientes
+    </h5>
+
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead style="background:linear-gradient(135deg,#145a32,#1e8449);color:#fff;">
+              <tr>
+                <th class="ps-4">Partido</th>
+                <th class="text-center d-none d-sm-table-cell">Fecha</th>
+                <th class="text-center">Resultado</th>
+                <th class="text-center">Mi Pronóstico</th>
+                <th class="text-center d-none d-md-table-cell">Puntos</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for partido in finalizados %}
+                {% set mi_pronostico = mis_pronosticos.get(partido.id) %}
+                {% set acerto = mi_pronostico and mi_pronostico.pronostico == partido.resultado.resultado %}
+                <tr class="{% if acerto %}table-success{% elif mi_pronostico %}table-danger{% endif %}">
+                  <td class="ps-4 fw-semibold">
+                    {{ partido.equipo_a }} vs {{ partido.equipo_b }}
+                  </td>
+                  <td class="text-center d-none d-sm-table-cell small text-muted">
+                    {{ partido.fecha_hora | fmt_date }}
+                  </td>
+                  <td class="text-center">
+                    {% if partido.resultado.resultado == 'equipo_a' %}
+                      <span class="badge bg-primary">{{ partido.equipo_a }}</span>
+                    {% elif partido.resultado.resultado == 'empate' %}
+                      <span class="badge bg-secondary">Empate</span>
+                    {% else %}
+                      <span class="badge bg-info text-dark">{{ partido.equipo_b }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center">
+                    {% if mi_pronostico %}
+                      {% if mi_pronostico.pronostico == 'equipo_a' %}
+                        <span class="badge bg-primary opacity-75">{{ partido.equipo_a }}</span>
+                      {% elif mi_pronostico.pronostico == 'empate' %}
+                        <span class="badge bg-secondary opacity-75">Empate</span>
+                      {% else %}
+                        <span class="badge bg-info text-dark opacity-75">{{ partido.equipo_b }}</span>
+                      {% endif %}
+                    {% else %}
+                      <span class="text-muted small">Sin pronóstico</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center d-none d-md-table-cell">
+                    {% if acerto %}
+                      <span class="badge bg-success px-3">+1 ✓</span>
+                    {% elif mi_pronostico %}
+                      <span class="badge bg-danger px-3">0 ✗</span>
+                    {% else %}
+                      <span class="text-muted">—</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endif %}
+
+<!-- Estado vacío -->
+{% if not proximos and not en_curso and not finalizados %}
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <i class="bi bi-calendar display-3 opacity-25 d-block mb-3"></i>
+      <h5>No hay partidos disponibles</h5>
+      <p>El administrador aún no ha creado partidos para esta quiniela.</p>
+    </div>
+  </div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Inicializar contadores con timestamps correctos
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('[data-countdown]').forEach(function(el) {
+    // El atributo data-countdown ya debe ser un Unix timestamp en ms
+    // Lo calculamos en servidor como:
+    //   fecha_hora.timestamp() * 1000
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-3">
+  <i class="bi bi-person-{% if user %}pencil{% else %}plus{% endif %} fs-3"></i>
+  <div>
+    <h4 class="mb-0 fw-bold">{{ titulo }}</h4>
+    <small class="opacity-75">
+      {% if user %}Modifica los datos del participante{% else %}Completa los campos para crear un nuevo participante{% endif %}
+    </small>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card">
+      <div class="card-body p-4">
+        <form method="POST" data-validate novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Nombre y Apellido -->
+          <div class="row g-3 mb-3">
+            <div class="col-12 col-sm-6">
+              <label for="nombre" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>Nombre <span class="text-danger">*</span>
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="nombre"
+                     name="nombre"
+                     value="{{ form_data.get('nombre', '') }}"
+                     placeholder="Juan"
+                     required
+                     maxlength="100">
+              <div class="invalid-feedback">El nombre es requerido.</div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <label for="apellido" class="form-label fw-semibold">
+                <i class="bi bi-person me-1 text-secondary"></i>Apellido <span class="text-danger">*</span>
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="apellido"
+                     name="apellido"
+                     value="{{ form_data.get('apellido', '') }}"
+                     placeholder="Pérez"
+                     required
+                     maxlength="100">
+              <div class="invalid-feedback">El apellido es requerido.</div>
+            </div>
+          </div>
+
+          <!-- Usuario (solo al crear) -->
+          {% if not user %}
+            <div class="mb-3">
+              <label for="username" class="form-label fw-semibold">
+                <i class="bi bi-at me-1 text-secondary"></i>Nombre de Usuario <span class="text-danger">*</span>
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="username"
+                     name="username"
+                     value="{{ form_data.get('username', '') }}"
+                     placeholder="Juan_Perez"
+                     required
+                     pattern="[a-zA-Z0-9_]+"
+                     maxlength="80">
+              <div class="form-text">Solo letras, números y guiones bajos (_). Ej: Juan_Perez</div>
+              <div class="invalid-feedback">Usuario inválido. Solo letras, números y guiones bajos.</div>
+            </div>
+          {% else %}
+            <div class="mb-3">
+              <label class="form-label fw-semibold">
+                <i class="bi bi-at me-1 text-secondary"></i>Nombre de Usuario
+              </label>
+              <input type="text" class="form-control bg-light" value="{{ user.username }}" disabled>
+              <div class="form-text">El nombre de usuario no se puede cambiar.</div>
+            </div>
+          {% endif %}
+
+          <!-- Contraseña -->
+          <div class="mb-3">
+            <label for="password" class="form-label fw-semibold">
+              <i class="bi bi-lock me-1 text-secondary"></i>
+              Contraseña {% if not user %}<span class="text-danger">*</span>{% endif %}
+            </label>
+            <div class="input-group">
+              <input type="password"
+                     class="form-control"
+                     id="password"
+                     name="password"
+                     placeholder="{% if user %}Dejar vacío para no cambiar{% else %}Mínimo 6 caracteres{% endif %}"
+                     {% if not user %}required{% endif %}
+                     minlength="6">
+              <button type="button" class="btn btn-outline-secondary"
+                      data-toggle-password="password" title="Mostrar / ocultar">
+                <i class="bi bi-eye"></i>
+              </button>
+            </div>
+            {% if user %}
+              <div class="form-text">Deja vacío si no deseas cambiar la contraseña.</div>
+            {% endif %}
+            <div class="invalid-feedback">La contraseña debe tener al menos 6 caracteres.</div>
+          </div>
+
+          <!-- Estado (solo al editar) -->
+          {% if user %}
+            <div class="mb-4">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="activo" name="activo"
+                       {% if form_data.get('activo', True) %}checked{% endif %}>
+                <label class="form-check-label fw-semibold" for="activo">Cuenta activa</label>
+              </div>
+              <div class="form-text">Las cuentas inactivas no pueden iniciar sesión.</div>
+            </div>
+          {% endif %}
+
+          <!-- Botones -->
+          <div class="d-flex gap-2 justify-content-end pt-2">
+            <a href="{{ url_for('admin.participantes') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-lg me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4">
+              <i class="bi bi-check-lg me-1"></i>
+              {% if user %}Guardar Cambios{% else %}Crear Participante{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

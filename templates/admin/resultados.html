@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% block title %}Resultados — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-3">
+  <i class="bi bi-clipboard-check fs-3"></i>
+  <div>
+    <h4 class="mb-0 fw-bold">Registrar Resultados</h4>
+    <small class="opacity-75">Ingresa el resultado oficial de cada partido</small>
+  </div>
+</div>
+
+{% if partidos %}
+
+  {% if sin_resultado %}
+    <h5 class="section-title mb-3">
+      <i class="bi bi-clock-history me-2"></i>Sin resultado registrado
+      <span class="badge bg-warning text-dark ms-2">{{ sin_resultado | length }}</span>
+    </h5>
+
+    <div class="row g-3 mb-4">
+      {% for partido in sin_resultado %}
+        <div class="col-12 col-md-6 col-xl-4">
+          <div class="card resultado-card h-100">
+            <div class="card-header py-3">
+              <div class="d-flex justify-content-between align-items-center">
+                <small class="opacity-75">
+                  <i class="bi bi-calendar3 me-1"></i>{{ partido.fecha_hora | fmt_datetime }}
+                </small>
+                {% if partido.estado == 'pendiente' %}
+                  <span class="badge badge-pendiente">Pendiente</span>
+                {% elif partido.estado == 'en_juego' %}
+                  <span class="badge badge-en_juego">En Juego</span>
+                {% else %}
+                  <span class="badge badge-finalizado">Finalizado</span>
+                {% endif %}
+              </div>
+              <div class="d-flex align-items-center justify-content-between mt-2">
+                <span class="fw-bold fs-6">{{ partido.equipo_a }}</span>
+                <span class="vs-badge mx-2">VS</span>
+                <span class="fw-bold fs-6">{{ partido.equipo_b }}</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <form method="POST"
+                    action="{{ url_for('admin.guardar_resultado', partido_id=partido.id) }}"
+                    class="resultado-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <p class="small fw-semibold text-muted mb-2">Selecciona el resultado:</p>
+
+                <label class="resultado-option w-100">
+                  <input type="radio" name="resultado" value="equipo_a" class="d-none">
+                  <i class="bi bi-trophy-fill text-warning me-2"></i>
+                  <span>Gana <strong>{{ partido.equipo_a }}</strong></span>
+                </label>
+
+                <label class="resultado-option w-100">
+                  <input type="radio" name="resultado" value="empate" class="d-none">
+                  <i class="bi bi-dash-circle-fill text-secondary me-2"></i>
+                  <span>Empate</span>
+                </label>
+
+                <label class="resultado-option w-100">
+                  <input type="radio" name="resultado" value="equipo_b" class="d-none">
+                  <i class="bi bi-trophy-fill text-info me-2"></i>
+                  <span>Gana <strong>{{ partido.equipo_b }}</strong></span>
+                </label>
+
+                <div class="d-grid mt-3">
+                  <button type="submit" class="btn btn-success fw-semibold">
+                    <i class="bi bi-check-circle me-2"></i>Registrar Resultado
+                  </button>
+                </div>
+              </form>
+            </div>
+            <div class="card-footer bg-light small text-muted d-flex align-items-center gap-1">
+              <i class="bi bi-people"></i>
+              {{ partido.pronosticos.count() }} pronósticos registrados
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Partidos con resultado -->
+  {% if con_resultado %}
+    <h5 class="section-title mb-3">
+      <i class="bi bi-check-circle me-2"></i>Resultados registrados
+      <span class="badge bg-success ms-2">{{ con_resultado | length }}</span>
+    </h5>
+
+    <div class="card">
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="ranking-table">
+              <tr>
+                <th class="ps-4">Partido</th>
+                <th class="text-center d-none d-md-table-cell">Fecha</th>
+                <th class="text-center">Resultado</th>
+                <th class="text-center d-none d-md-table-cell">Registrado</th>
+                <th class="text-center">Acción</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for partido in con_resultado %}
+                <tr>
+                  <td class="ps-4">
+                    <div class="fw-semibold">{{ partido.equipo_a }} vs {{ partido.equipo_b }}</div>
+                  </td>
+                  <td class="text-center d-none d-md-table-cell small text-muted">
+                    {{ partido.fecha_hora | fmt_datetime }}
+                  </td>
+                  <td class="text-center">
+                    {% if partido.resultado.resultado == 'equipo_a' %}
+                      <span class="badge bg-primary px-3">{{ partido.equipo_a }}</span>
+                    {% elif partido.resultado.resultado == 'empate' %}
+                      <span class="badge bg-secondary px-3">Empate</span>
+                    {% else %}
+                      <span class="badge bg-info text-dark px-3">{{ partido.equipo_b }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-center d-none d-md-table-cell small text-muted">
+                    {{ partido.resultado.fecha_registro | fmt_datetime }}
+                  </td>
+                  <td class="text-center">
+                    <!-- Botón para corregir resultado -->
+                    <button type="button"
+                            class="btn btn-sm btn-outline-warning"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalCorregir{{ partido.id }}"
+                            title="Corregir resultado">
+                      <i class="bi bi-pencil me-1"></i>Corregir
+                    </button>
+
+                    <!-- Modal de corrección -->
+                    <div class="modal fade" id="modalCorregir{{ partido.id }}" tabindex="-1">
+                      <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                          <div class="modal-header"
+                               style="background:linear-gradient(135deg,#1a3a5c,#2d6a9f);color:#fff;">
+                            <h5 class="modal-title fw-bold">
+                              <i class="bi bi-pencil-square me-2"></i>Corregir Resultado
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                          </div>
+                          <form method="POST"
+                                action="{{ url_for('admin.guardar_resultado', partido_id=partido.id) }}"
+                                class="resultado-form">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <div class="modal-body">
+                              <p class="fw-semibold">
+                                {{ partido.equipo_a }} vs {{ partido.equipo_b }}
+                              </p>
+
+                              <label class="resultado-option w-100">
+                                <input type="radio" name="resultado" value="equipo_a" class="d-none"
+                                       {% if partido.resultado.resultado == 'equipo_a' %}checked{% endif %}>
+                                <i class="bi bi-trophy-fill text-warning me-2"></i>
+                                Gana <strong>{{ partido.equipo_a }}</strong>
+                              </label>
+
+                              <label class="resultado-option w-100">
+                                <input type="radio" name="resultado" value="empate" class="d-none"
+                                       {% if partido.resultado.resultado == 'empate' %}checked{% endif %}>
+                                <i class="bi bi-dash-circle-fill text-secondary me-2"></i>
+                                Empate
+                              </label>
+
+                              <label class="resultado-option w-100">
+                                <input type="radio" name="resultado" value="equipo_b" class="d-none"
+                                       {% if partido.resultado.resultado == 'equipo_b' %}checked{% endif %}>
+                                <i class="bi bi-trophy-fill text-info me-2"></i>
+                                Gana <strong>{{ partido.equipo_b }}</strong>
+                              </label>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                Cancelar
+                              </button>
+                              <button type="submit" class="btn btn-warning fw-semibold">
+                                <i class="bi bi-check-lg me-1"></i>Actualizar Resultado
+                              </button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+
+{% else %}
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <i class="bi bi-calendar-x display-3 opacity-25 d-block mb-3"></i>
+      <h5>No hay partidos registrados</h5>
+      <p class="mb-3">Crea partidos primero para poder registrar resultados.</p>
+      <a href="{{ url_for('admin.nuevo_partido') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Crear Partido
+      </a>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

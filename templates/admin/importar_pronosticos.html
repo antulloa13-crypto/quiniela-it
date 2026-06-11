@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Importar Pronósticos — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div class="d-flex align-items-center gap-3">
+    <i class="bi bi-file-earmark-spreadsheet fs-3"></i>
+    <div>
+      <h4 class="mb-0 fw-bold">Importar Pronósticos</h4>
+      <small class="opacity-75">Carga masiva desde Excel</small>
+    </div>
+  </div>
+  <a href="{{ url_for('admin.descargar_plantilla') }}" class="btn btn-light fw-semibold">
+    <i class="bi bi-download me-2"></i>Descargar Plantilla
+  </a>
+</div>
+
+<div class="row g-4">
+
+  <!-- ── Formulario de carga ── -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-upload me-2"></i>Subir archivo Excel
+      </div>
+      <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" id="import-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <div class="mb-4">
+            <label for="archivo" class="form-label fw-semibold">Archivo .xlsx</label>
+            <input
+              type="file"
+              class="form-control"
+              id="archivo"
+              name="archivo"
+              accept=".xlsx"
+              required
+            >
+            <div class="form-text">Solo se aceptan archivos en formato <strong>.xlsx</strong>.</div>
+          </div>
+
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary fw-semibold" id="btn-importar">
+              <i class="bi bi-cloud-upload me-2"></i>Importar Pronósticos
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Instrucciones ── -->
+  <div class="col-lg-6">
+    <div class="card h-100">
+      <div class="card-header fw-semibold">
+        <i class="bi bi-info-circle me-2"></i>Instrucciones
+      </div>
+      <div class="card-body">
+        <ol class="mb-3" style="line-height:1.8">
+          <li>Descarga la <strong>Plantilla Excel</strong> con el botón de arriba.</li>
+          <li>
+            Completa <strong>únicamente</strong> la columna <code>pronostico</code> (columna&nbsp;F).
+          </li>
+          <li>
+            Los valores permitidos son:
+            <ul class="mt-1">
+              <li><code>equipo_a</code> — gana el primer equipo</li>
+              <li><code>equipo_b</code> — gana el segundo equipo</li>
+              <li><code>empate</code> — el partido termina igualado</li>
+            </ul>
+          </li>
+          <li>Las columnas grises son de referencia; no las modifiques.</li>
+          <li>Puedes dejar filas vacías; serán ignoradas.</li>
+          <li>Si un pronóstico ya existe, se <strong>actualizará</strong> con el nuevo valor.</li>
+        </ol>
+
+        <div class="alert alert-warning d-flex gap-2 mb-0" role="alert">
+          <i class="bi bi-exclamation-triangle-fill flex-shrink-0 mt-1"></i>
+          <span>
+            La plantilla incluye todos los usuarios activos y todos los partidos.
+            Si agregas nuevos participantes o partidos, descarga una nueva plantilla.
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('import-form').addEventListener('submit', function () {
+    const btn = document.getElementById('btn-importar');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Importando…';
+  });
+</script>
+{% endblock %}

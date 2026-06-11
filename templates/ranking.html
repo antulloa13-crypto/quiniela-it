@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+{% block title %}Ranking General — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-3">
+  <i class="bi bi-bar-chart-line fs-3"></i>
+  <div>
+    <h4 class="mb-0 fw-bold">Ranking General</h4>
+    <small class="opacity-75">Tabla de posiciones actualizada</small>
+  </div>
+</div>
+
+{% if ranking %}
+  <!-- Podio top 3 -->
+  {% if ranking | length >= 1 %}
+    <div class="row g-3 mb-4 justify-content-center">
+      <!-- 2do puesto -->
+      {% if ranking | length >= 2 %}
+        <div class="col-4 col-md-3 d-flex align-items-end">
+          <div class="card text-center w-100 border-0"
+               style="background:linear-gradient(135deg,#9e9e9e,#bdbdbd);color:#fff;border-radius:12px 12px 0 0;padding-top:1.5rem;">
+            <div class="card-body pb-3">
+              <div style="font-size:2.5rem;">🥈</div>
+              <div class="fw-bold mt-1" style="font-size:.9rem;">{{ ranking[1].usuario.username }}</div>
+              <div class="opacity-75 small">{{ ranking[1].usuario.nombre_completo }}</div>
+              <div class="badge bg-white text-dark fs-6 mt-2">{{ ranking[1].puntos }} pts</div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- 1er puesto -->
+      <div class="col-4 col-md-3 d-flex align-items-end">
+        <div class="card text-center w-100 border-0"
+             style="background:linear-gradient(135deg,#c8960c,#f0c040);color:#fff;border-radius:12px 12px 0 0;padding-top:2.5rem;">
+          <div class="card-body pb-3">
+            <div style="font-size:3rem;">🥇</div>
+            <div class="fw-bold mt-1">{{ ranking[0].usuario.username }}</div>
+            <div class="opacity-75 small">{{ ranking[0].usuario.nombre_completo }}</div>
+            <div class="badge bg-white text-dark fs-5 mt-2">{{ ranking[0].puntos }} pts</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3er puesto -->
+      {% if ranking | length >= 3 %}
+        <div class="col-4 col-md-3 d-flex align-items-end">
+          <div class="card text-center w-100 border-0"
+               style="background:linear-gradient(135deg,#8d5524,#b87333);color:#fff;border-radius:12px 12px 0 0;padding-top:1.5rem;">
+            <div class="card-body pb-3">
+              <div style="font-size:2.5rem;">🥉</div>
+              <div class="fw-bold mt-1" style="font-size:.9rem;">{{ ranking[2].usuario.username }}</div>
+              <div class="opacity-75 small">{{ ranking[2].usuario.nombre_completo }}</div>
+              <div class="badge bg-white text-dark fs-6 mt-2">{{ ranking[2].puntos }} pts</div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <!-- Tabla completa -->
+  <div class="card">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 ranking-table">
+          <thead>
+            <tr>
+              <th class="ps-3 text-center" style="width:60px">Pos.</th>
+              <th>Participante</th>
+              <th class="text-center">
+                <i class="bi bi-star-fill me-1"></i>Puntos
+              </th>
+              <th class="text-center d-none d-sm-table-cell">
+                <i class="bi bi-check-circle me-1"></i>Aciertos
+              </th>
+              <th class="text-center d-none d-sm-table-cell">
+                <i class="bi bi-x-circle me-1"></i>Fallos
+              </th>
+              <th class="text-center d-none d-md-table-cell">
+                <i class="bi bi-fire me-1"></i>Racha Actual
+              </th>
+              <th class="text-center d-none d-md-table-cell">
+                <i class="bi bi-trophy me-1"></i>Mejor Racha
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in ranking %}
+              <tr class="rank-{{ loop.index }}
+                          {% if item.usuario.id == current_user.id %}table-active{% endif %}">
+                <td class="text-center ps-3 fw-bold">
+                  {% if loop.index == 1 %}<span style="font-size:1.2rem">🥇</span>
+                  {% elif loop.index == 2 %}<span style="font-size:1.2rem">🥈</span>
+                  {% elif loop.index == 3 %}<span style="font-size:1.2rem">🥉</span>
+                  {% else %}
+                    <span class="text-muted">{{ loop.index }}</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                         style="width:36px;height:36px;font-size:.85rem;background:linear-gradient(135deg,#1a3a5c,#2d6a9f);flex-shrink:0;">
+                      {{ item.usuario.username[0].upper() }}
+                    </div>
+                    <div>
+                      <div class="fw-semibold">
+                        {{ item.usuario.username }}
+                        {% if item.usuario.id == current_user.id %}
+                          <span class="badge bg-primary ms-1" style="font-size:.65rem">Tú</span>
+                        {% endif %}
+                      </div>
+                      <div class="text-muted small d-none d-sm-block">{{ item.usuario.nombre_completo }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="text-center">
+                  <span class="badge bg-primary fs-6 px-3 py-2">{{ item.puntos }}</span>
+                </td>
+                <td class="text-center d-none d-sm-table-cell">
+                  <span class="text-success fw-bold">{{ item.total_aciertos }}</span>
+                </td>
+                <td class="text-center d-none d-sm-table-cell">
+                  <span class="text-danger fw-bold">{{ item.total_fallos }}</span>
+                </td>
+                <td class="text-center d-none d-md-table-cell">
+                  {% if item.racha_actual > 0 %}
+                    <span class="badge bg-success px-3">
+                      <i class="bi bi-fire me-1"></i>{{ item.racha_actual }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center d-none d-md-table-cell">
+                  <span class="fw-bold text-secondary">{{ item.mejor_racha }}</span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card-footer bg-light small text-muted text-center">
+      <i class="bi bi-info-circle me-1"></i>
+      Desempate: puntos → mejor racha → total aciertos → orden alfabético
+    </div>
+  </div>
+{% else %}
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <i class="bi bi-bar-chart display-3 opacity-25 d-block mb-3"></i>
+      <h5>El ranking está vacío</h5>
+      <p>Aún no hay participantes con resultados registrados.</p>
+    </div>
+  </div>
+{% endif %}
+{% endblock %}

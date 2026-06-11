@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}Participantes — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center justify-content-between">
+  <div class="d-flex align-items-center gap-3">
+    <i class="bi bi-people fs-3"></i>
+    <div>
+      <h4 class="mb-0 fw-bold">Participantes</h4>
+      <small class="opacity-75">{{ participantes | length }} registrados</small>
+    </div>
+  </div>
+  <a href="{{ url_for('admin.nuevo_participante') }}" class="btn btn-light fw-semibold">
+    <i class="bi bi-person-plus me-2"></i>Nuevo Participante
+  </a>
+</div>
+
+<div class="card">
+  <div class="card-body p-0">
+    {% if participantes %}
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="ranking-table">
+            <tr>
+              <th class="ps-4">#</th>
+              <th>Usuario</th>
+              <th>Nombre Completo</th>
+              <th class="text-center">Estado</th>
+              <th class="text-center d-none d-md-table-cell">Puntos</th>
+              <th class="text-center d-none d-md-table-cell">Racha</th>
+              <th class="text-end pe-4">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in participantes %}
+              <tr>
+                <td class="ps-4 text-muted">{{ loop.index }}</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
+                         style="width:36px;height:36px;font-size:.85rem;background:linear-gradient(135deg,#1a3a5c,#2d6a9f);flex-shrink:0;">
+                      {{ user.username[0].upper() }}
+                    </div>
+                    <span class="fw-semibold">{{ user.username }}</span>
+                  </div>
+                </td>
+                <td class="text-muted">{{ user.nombre_completo }}</td>
+                <td class="text-center">
+                  {% if user.activo %}
+                    <span class="badge bg-success px-3">Activo</span>
+                  {% else %}
+                    <span class="badge bg-secondary px-3">Inactivo</span>
+                  {% endif %}
+                </td>
+                <td class="text-center d-none d-md-table-cell">
+                  {% if user.puntuacion %}
+                    <span class="badge bg-primary">{{ user.puntuacion.puntos }} pts</span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-center d-none d-md-table-cell">
+                  {% if user.puntuacion and user.puntuacion.racha_actual > 0 %}
+                    <span class="badge bg-success">
+                      <i class="bi bi-fire me-1"></i>{{ user.puntuacion.racha_actual }}
+                    </span>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+                <td class="text-end pe-4">
+                  <div class="d-flex justify-content-end gap-1">
+                    <a href="{{ url_for('admin.editar_participante', user_id=user.id) }}"
+                       class="btn btn-sm btn-outline-primary" title="Editar">
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST"
+                          action="{{ url_for('admin.eliminar_participante', user_id=user.id) }}"
+                          data-confirm="¿Eliminar al participante {{ user.username }}? Se eliminarán también todos sus pronósticos.">
+                      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                      <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    {% else %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-people display-3 opacity-25 d-block mb-3"></i>
+        <h5>No hay participantes registrados</h5>
+        <p class="mb-3">Crea el primer participante para comenzar la quiniela.</p>
+        <a href="{{ url_for('admin.nuevo_participante') }}" class="btn btn-primary">
+          <i class="bi bi-person-plus me-2"></i>Agregar Participante
+        </a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

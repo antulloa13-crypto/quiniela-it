@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}{{ titulo }} — Quiniela Deportiva{% endblock %}
+
+{% block content %}
+<div class="page-header d-flex align-items-center gap-3">
+  <i class="bi bi-calendar-{% if partido %}pencil{% else %}plus{% endif %} fs-3"></i>
+  <div>
+    <h4 class="mb-0 fw-bold">{{ titulo }}</h4>
+    <small class="opacity-75">
+      {% if partido %}Modifica los datos del partido{% else %}Ingresa los datos del nuevo partido{% endif %}
+    </small>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-9 col-lg-7">
+    <div class="card">
+      <div class="card-body p-4">
+        <form method="POST" data-validate novalidate>
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+          <!-- Equipos -->
+          <div class="row g-3 mb-3">
+            <div class="col-12">
+              <h6 class="section-title mb-3">
+                <i class="bi bi-shield-fill me-2"></i>Equipos
+              </h6>
+            </div>
+            <div class="col-12 col-sm-5">
+              <label for="equipo_a" class="form-label fw-semibold">
+                Equipo A <span class="text-danger">*</span>
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="equipo_a"
+                     name="equipo_a"
+                     value="{{ form_data.get('equipo_a', '') }}"
+                     placeholder="Ej: Barcelona"
+                     required maxlength="100">
+              <div class="invalid-feedback">El nombre del Equipo A es requerido.</div>
+            </div>
+            <div class="col-12 col-sm-2 d-flex align-items-end justify-content-center pb-1">
+              <span class="badge bg-secondary fs-6 px-3 py-2">VS</span>
+            </div>
+            <div class="col-12 col-sm-5">
+              <label for="equipo_b" class="form-label fw-semibold">
+                Equipo B <span class="text-danger">*</span>
+              </label>
+              <input type="text"
+                     class="form-control"
+                     id="equipo_b"
+                     name="equipo_b"
+                     value="{{ form_data.get('equipo_b', '') }}"
+                     placeholder="Ej: Real Madrid"
+                     required maxlength="100">
+              <div class="invalid-feedback">El nombre del Equipo B es requerido.</div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <!-- Fecha, Hora y Estado -->
+          <div class="row g-3 mb-4">
+            <div class="col-12">
+              <h6 class="section-title mb-3">
+                <i class="bi bi-calendar-clock me-2"></i>Programación
+              </h6>
+            </div>
+            <div class="col-12 col-sm-6">
+              <label for="fecha_hora" class="form-label fw-semibold">
+                Fecha y Hora <span class="text-danger">*</span>
+              </label>
+              <input type="datetime-local"
+                     class="form-control"
+                     id="fecha_hora"
+                     name="fecha_hora"
+                     value="{{ form_data.get('fecha_hora', '') }}"
+                     required>
+              <div class="form-text">
+                <i class="bi bi-lock me-1"></i>Los pronósticos se bloquearán automáticamente al llegar esta hora.
+              </div>
+              <div class="invalid-feedback">La fecha y hora son requeridas.</div>
+            </div>
+            <div class="col-12 col-sm-6">
+              <label for="estado" class="form-label fw-semibold">Estado</label>
+              <select class="form-select" id="estado" name="estado">
+                <option value="pendiente" {% if form_data.get('estado') == 'pendiente' %}selected{% endif %}>
+                  ⏳ Pendiente
+                </option>
+                <option value="en_juego" {% if form_data.get('estado') == 'en_juego' %}selected{% endif %}>
+                  ▶️ En Juego
+                </option>
+                <option value="finalizado" {% if form_data.get('estado') == 'finalizado' %}selected{% endif %}>
+                  ✅ Finalizado
+                </option>
+              </select>
+              <div class="form-text">El estado cambia automáticamente al registrar un resultado.</div>
+            </div>
+          </div>
+
+          <!-- Pronósticos existentes (al editar) -->
+          {% if partido and partido.pronosticos.count() > 0 %}
+            <div class="alert alert-warning d-flex gap-2 align-items-start" role="alert">
+              <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+              <div>
+                <strong>Atención:</strong> Este partido tiene
+                <strong>{{ partido.pronosticos.count() }}</strong> pronóstico(s) registrado(s).
+                Si cambias la fecha/hora podrías afectar el bloqueo de pronósticos.
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Botones -->
+          <div class="d-flex gap-2 justify-content-end pt-2">
+            <a href="{{ url_for('admin.partidos') }}" class="btn btn-outline-secondary">
+              <i class="bi bi-x-lg me-1"></i>Cancelar
+            </a>
+            <button type="submit" class="btn btn-primary fw-semibold px-4">
+              <i class="bi bi-check-lg me-1"></i>
+              {% if partido %}Guardar Cambios{% else %}Crear Partido{% endif %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
